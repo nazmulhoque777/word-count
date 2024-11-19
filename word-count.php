@@ -30,5 +30,54 @@ function wordcount_count_words($content) {
     return $content;
 }
 add_filter('the_content', 'wordcount_count_words');
+function wordcount_reading_time($content) {
+    // কন্টেন্ট থেকে HTML ট্যাগ সরানো
+    $stripped_content = strip_tags($content);
+
+    // শব্দ সংখ্যা গণনা করা (ডিফল্ট হিসাবে ৯০০ ব্যবহার করা হচ্ছে)
+    $wordn = 900;
+
+    // পড়ার সময় গণনা করা
+    $reading_minute = floor($wordn / 200);
+    $reading_seconds = floor($wordn % 200 / (200 / 60));
+
+    // ফিল্টার দিয়ে দৃশ্যমানতা চেক করা
+    $is_visible = apply_filters('wordcount_display_readingtime', 1);
+    if ($is_visible) {
+        // লেবেল এবং ট্যাগের জন্য ফিল্টার প্রয়োগ করা
+        $label = __('Total Reading Time', 'word_count');
+        $label = apply_filters("wordcount_readingtime_heading", $label);
+        $tag = apply_filters('wordcount_readingtime_tag', 'h4');
+
+        // কন্টেন্টের সাথে যোগ করা হচ্ছে
+        $content .= sprintf(
+            '<%s>%s: %s minutes %s seconds</%s>',
+            $tag,
+            $label,
+            $reading_minute,
+            $reading_seconds,
+            $tag
+        );
+    }
+
+    return $content;
+}
+add_filter('the_content', 'wordcount_reading_time');
+
+// ফিল্টার ডিফাইন করা
+function customize_reading_time_visibility($is_visible) {
+    return 1; // দৃশ্যমান রাখার জন্য 1 রিটার্ন
+}
+add_filter('wordcount_display_readingtime', 'customize_reading_time_visibility');
+
+function customize_reading_time_heading($label) {
+    return 'Estimated Reading Time'; // নতুন শিরোনাম
+}
+add_filter('wordcount_readingtime_heading', 'customize_reading_time_heading');
+
+function customize_reading_time_tag($tag) {
+    return 'h3'; // ট্যাগ পরিবর্তন
+}
+add_filter('wordcount_readingtime_tag', 'customize_reading_time_tag');
 
 
